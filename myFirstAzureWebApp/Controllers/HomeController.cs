@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.Script.Serialization;
 using myFirstAzureWebApp.Models;
@@ -18,27 +16,26 @@ namespace myFirstAzureWebApp.Controllers
         private String ZOMATO_ENDPOINT = "https://developers.zomato.com/api/v2.1/search";
         private String ZOMATO_APIKEY = "0547de01afb74918a2da9a17608b0b21";
 
-        
-
-
-
+  
 
         public ActionResult Index()
         {
 
             var model = getData();
+            ViewBag.Title = "Find Food";
             
             return View(model);
         }
 
 
+  
         public List<ViewDTO> getData()
         {
             List<ViewDTO> viewData = new List<ViewDTO>();
             var imageData = getImages();
             for (var i = 0; i < imageData.Count; i++)
             {
-                var restaurtantData = getRestaurant(imageData[i]);
+                var restaurtantData = getRestaurant(imageData[i].tags);
                 ViewDTO viewDTO = new ViewDTO();
                 viewDTO.imageURl = imageData[i].imageURl;
                 if (restaurtantData.Count == 3)
@@ -48,9 +45,8 @@ namespace myFirstAzureWebApp.Controllers
                     viewDTO.restaurant3 = restaurtantData[2];
                     viewData.Add(viewDTO);
                 }
-               
+
             }
-        
 
             return viewData;
             
@@ -79,12 +75,13 @@ namespace myFirstAzureWebApp.Controllers
             return dtoItems;
         }
 
-        public List<ZomatoDOT> getRestaurant(PixabayDTO pictureData)
+        public List<ZomatoDOT> getRestaurant(String imageTags)
         {
+            System.Diagnostics.Debug.WriteLine("Im here");
             var client = new RestClient(ZOMATO_ENDPOINT);
             var request = new RestRequest(Method.GET);
             request.AddHeader("user-key", ZOMATO_APIKEY);
-            request.AddParameter("q", pictureData.tags);
+            request.AddParameter("q", imageTags);
             var result = client.Execute(request);
             System.Diagnostics.Debug.WriteLine(result.Content);
 
@@ -94,6 +91,7 @@ namespace myFirstAzureWebApp.Controllers
             List<ZomatoDOT> zomatoDOTs = new List<ZomatoDOT>();
 
             var count = results.Count;
+            // Filters out images that do not have more than three restuarants associated
             if (count > 3)
             {
                 count = 3;
@@ -110,14 +108,14 @@ namespace myFirstAzureWebApp.Controllers
 
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
+            ViewBag.Message = "This quick application pull food pictures from pixabay and uses the tags to search zomato for nearby restaurants. Hosted using azure cloud services.";
 
             return View();
         }
 
         public ActionResult Contact()
         {
-            ViewBag.Message = "Your contact page.";
+            ViewBag.Message = "Contact me through my email";
 
             return View();
         }
